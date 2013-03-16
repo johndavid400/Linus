@@ -1,6 +1,8 @@
 // Linus the Line-bot
 // Follows a Black line on a White surface (poster-board and electrical tape).
-// Code by JDW 2010 – feel free to modify.
+// Code by JDW 2013 – feel free to modify.
+
+// This code is different from what is in my book. It is intended for use with continuous rotation servo motors that still have the internal motor-controllers in place. This code does NOT use the Adafruit motor-shield, instead the motor control wires shoudl be connected to pins D9 and D10.
 
 // Create variables for sensor readings
 
