@@ -239,9 +239,11 @@ void motor_right_stop(){
 void test(){
   for (long i = 0; i < 5000; i++){
     motor_left_forward();
+    motor_right_forward();
   }
   for (long i = 0; i < 50000; i++){
     motor_left_stop();
+    motor_right_stop();
   }
 }
 
