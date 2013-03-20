@@ -28,8 +28,8 @@ Servo motor_right;
 // Here you need to set the stop pulse for each motor. Mine were slightly different. Once you set "test_motors = true", you can try the motor test out to see if the motors are perfectly still when stopped.
 // The motor test should pulse the motors forward then stop for a few seconds. If either motor does not stop fully, you should adjust the corresponding value below until they only move when pulsed forward.
 // By definition, the value for stopping a servo with the Arduino Servo library should be 90 (as in 90 degrees out of 180 degrees), but continuous rotation servos are not always perfectly balanced and sometimes must but adjusted in the code.
-int left_stop_pulse = 92; // my left motor needed a value of 92
-int right_stop_pulse = 94; // my right motor needed a value of 94
+int left_stop_pulse = 90; // my left motor needed a value of 92
+int right_stop_pulse = 90; // my right motor needed a value of 94
 
 // Create variables for sensor readings
 int sensor1 = 0;
