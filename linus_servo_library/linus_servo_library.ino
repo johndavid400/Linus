@@ -4,13 +4,32 @@
 
 // This code is different from what is in my book. It is intended for use with continuous rotation servo motors that still have the internal motor-controllers in place. This code does NOT use the Adafruit motor-shield, instead the motor control wires shoudl be connected to pins D9 and D10.
 
-#include <Servo.h>
+#include <Servo.h> 
 
 // Change this to suit your robot
-// change to true if using a potentiometer
-boolean using_potentiometer = false;
+
+// change to true if you want to test out the motors
+boolean test_motors = true;
+
 // change to true if you want to see printed readings
 boolean print_stuff = true;
+
+// change to true if using a potentiometer
+boolean using_potentiometer = false;
+
+// if either of your motors is going in reverse, you can change that here (change the reversed motor from false to true)
+boolean left_motor_reverse = false;
+boolean right_motor_reverse = false;
+
+// declare motor pins
+Servo motor_left;
+Servo motor_right;
+
+// Here you need to set the stop pulse for each motor. Mine were slightly different. Once you set "test_motors = true", you can try the motor test out to see if the motors are perfectly still when stopped.
+// The motor test should pulse the motors forward then stop for a few seconds. If either motor does not stop fully, you should adjust the corresponding value below until they only move when pulsed forward.
+// By definition, the value for stopping a servo with the Arduino Servo library should be 90 (as in 90 degrees out of 180 degrees), but continuous rotation servos are not always perfectly balanced and sometimes must but adjusted in the code.
+int left_stop_pulse = 92; // my left motor needed a value of 92
+int right_stop_pulse = 94; // my right motor needed a value of 94
 
 // Create variables for sensor readings
 int sensor1 = 0;
@@ -52,13 +71,7 @@ int threshold = 128;
 int upper_threshold = 230;
  
 // using a speed potentiometer will over-ride this setting.
-int speed_value = 89;
-
-// declare motor pins
-Servo motor_left;
-Servo motor_right;
-
-int stop_pulse = 90;
+int speed_value = 85;
 
 // end of changeable variables
 
@@ -97,64 +110,69 @@ void update_sensors(){
 
   // check value for speed potentiometer if present  
   if (using_potentiometer){
-    speed_value = constrain(map(analogRead(5), 0, 1023, 0, 89), 0, 89);
+    speed_value = constrain(map(analogRead(5), 0, 1023, 0, 85), 0, 85);
   }
 
 }
 
 void loop(){
-  update_sensors(); // update sensors 
-  // first, check the value of the center sensor
-  if (adj_3 < lower_threshold){
-    // if center sensor value is below threshold, check surrounding sensors
-    if (adj_2 > threshold && adj_4 > threshold){
-      // if all sensors check out, drive forward	
-      motor_left_forward();
-      motor_right_forward();
-    }
-    // you want the bot to stop when it reaches the black box.
-    else if (adj_1 < 1){
-      if (adj_2 < 1){
-        if (adj_3 < 1){
-          if (adj_4 < 1){
-            if (adj_5 < 1){
-              //  if all sensors are reading black, stop Linus.
-              motor_left_stop();
-              motor_right_stop();
+  if (test_motors){
+    test();
+  }
+  else {
+    update_sensors(); // update sensors 
+    // first, check the value of the center sensor
+    if (adj_3 < lower_threshold){
+      // if center sensor value is below threshold, check surrounding sensors
+      if (adj_2 > threshold && adj_4 > threshold){
+        // if all sensors check out, drive forward	
+        motor_left_forward();
+        motor_right_forward();
+      }
+      // you want the bot to stop when it reaches the black box.
+      else if (adj_1 < 1){
+        if (adj_2 < 1){
+          if (adj_3 < 1){
+            if (adj_4 < 1){
+              if (adj_5 < 1){
+                //  if all sensors are reading black, stop Linus.
+                motor_left_stop();
+                motor_right_stop();
+              }
             }
           }
         }
       }
     }
-  }
-  // otherwise, the center sensor is above the threshold
-  // so we need to check what sensor is above the black line 
-  else {
-    // first check sensor 1
-    if (adj_1 < upper_threshold && adj_5 > upper_threshold){
-      motor_left_stop();
-      motor_right_forward();
+    // otherwise, the center sensor is above the threshold
+    // so we need to check what sensor is above the black line 
+    else {
+      // first check sensor 1
+      if (adj_1 < upper_threshold && adj_5 > upper_threshold){
+        motor_left_stop();
+        motor_right_forward();
+      }
+      // then check sensor 5
+      else if (adj_1 > upper_threshold && adj_5 < upper_threshold){
+        motor_left_forward();
+        motor_right_stop();
+      }
+  
+      // if not sensor 1 or 5, then check sensor 2
+      else if (adj_2 < upper_threshold && adj_4 > upper_threshold){
+        motor_left_stop();
+        motor_right_forward();
+      }
+  
+      // if not sensor 2, then check sensor 4
+      else if (adj_2 > upper_threshold && adj_4 < upper_threshold){
+        motor_left_forward();
+        motor_right_stop();
+      }
     }
-    // then check sensor 5
-    else if (adj_1 > upper_threshold && adj_5 < upper_threshold){
-      motor_left_forward();
-      motor_right_stop();
+    if (print_stuff){
+      serial_write_stuff();
     }
-
-    // if not sensor 1 or 5, then check sensor 2
-    else if (adj_2 < upper_threshold && adj_4 > upper_threshold){
-      motor_left_stop();
-      motor_right_forward();
-    }
-
-    // if not sensor 2, then check sensor 4
-    else if (adj_2 > upper_threshold && adj_4 < upper_threshold){
-      motor_left_forward();
-      motor_right_stop();
-    }
-  }
-  if (print_stuff){
-    serial_write_stuff();
   }
 }
 
@@ -179,7 +197,7 @@ void serial_write_stuff(){
   Serial.print(" , sensor4: ");
   Serial.print(sensor4);
   Serial.print(" adj: ");
-  Serial.print(adj_4);
+  Serial.print(adj_4);  
   /////sensor 5 values
   Serial.print(" , sensor5: ");
   Serial.print(sensor5);
@@ -193,19 +211,38 @@ void serial_write_stuff(){
 // functions for motors
 
 void motor_left_forward(){
-  motor_left.write(stop_pulse + speed_value);
+  if (left_motor_reverse){
+    motor_left.write(left_stop_pulse - speed_value);
+  }
+  else {
+    motor_left.write(left_stop_pulse + speed_value);
+  }
 }
 
 void motor_left_stop(){
-  motor_left.write(stop_pulse);
+  motor_left.write(left_stop_pulse);
 }
 
 void motor_right_forward(){
-  motor_right.write(stop_pulse + speed_value);
+  if (right_motor_reverse){
+    motor_right.write(right_stop_pulse - speed_value);
+  }
+  else {
+    motor_right.write(right_stop_pulse + speed_value);
+  }  
 }
 
 void motor_right_stop(){
-  motor_right.write(stop_pulse);
+  motor_right.write(right_stop_pulse);
+}
+
+void test(){
+  for (long i = 0; i < 5000; i++){
+    motor_left_forward();
+  }
+  for (long i = 0; i < 50000; i++){
+    motor_left_stop();
+  }
 }
 
 // end of code
