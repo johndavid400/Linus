@@ -5,7 +5,6 @@
 // This code is different from what is in my book. It is intended for use with continuous rotation servo motors that still have the internal motor-controllers in place. This code does NOT use the Adafruit motor-shield, instead the motor control wires shoudl be connected to pins D9 and D10.
 
 // Create variables for sensor readings
-
 int sensor1 = 0;
 int sensor2 = 0;
 int sensor3 = 0;
@@ -13,16 +12,13 @@ int sensor4 = 0;
 int sensor5 = 0;
 
 // Create variables for adjusted readings
-
 int adj_1 = 0;
 int adj_2 = 0;
 int adj_3 = 0;
 int adj_4 = 0;
 int adj_5 = 0;
 
-
 // You can change the min/max values below to fine tune each sensor on your bot
-
 int s1_min = 200;
 int s1_max = 950;
 
@@ -49,7 +45,6 @@ int upper_threshold = 230;
 
 // this value sets the maximum speed of linus (255 = max). 
 // using a speed potentiometer will over-ride this setting.
-
 int speed_value = 512;
 int speed_pot;
 
@@ -71,7 +66,6 @@ void setup()
 }
 
 void update_sensors(){
-
   // this will read sensor 1
   sensor1 = analogRead(0);
   adj_1 = map(sensor1, s1_min, s1_max, 0, 255);
@@ -154,7 +148,10 @@ void loop(){
       motor_right_stop();
     }
   }
+  serial_write_stuff();
+}
 
+void serial_write_stuff(){
   ///// Print values for each sensor
   /////sensor 1 values
   Serial.print("sensor 1:  ");
@@ -209,27 +206,27 @@ void loop(){
 // functions for motors
 
 void motor_left_forward(){
-  digitalWrite(door_motor_pin, HIGH);
-  delayMicroseconds(stop_pulse + motor_speed);
-  digitalWrite(door_motor_pin, LOW);
+  digitalWrite(motor_left, HIGH);
+  delayMicroseconds(stop_pulse + speed_value);
+  digitalWrite(motor_left, LOW);
 }
 
 void motor_left_stop(){
-  digitalWrite(door_motor_pin, HIGH);
+  digitalWrite(motor_left, HIGH);
   delayMicroseconds(stop_pulse);
-  digitalWrite(door_motor_pin, LOW);
+  digitalWrite(motor_left, LOW);
 }
 
 void motor_right_forward(){
-  digitalWrite(door_motor_pin, HIGH);
-  delayMicroseconds(stop_pulse + motor_speed);
-  digitalWrite(door_motor_pin, LOW);
+  digitalWrite(motor_right, HIGH);
+  delayMicroseconds(stop_pulse + speed_value);
+  digitalWrite(motor_right, LOW);
 }
 
 void motor_right_stop(){
-  digitalWrite(door_motor_pin, HIGH);
+  digitalWrite(motor_right, HIGH);
   delayMicroseconds(stop_pulse);
-  digitalWrite(door_motor_pin, LOW);
+  digitalWrite(motor_right, LOW);
 }
 
 // end of code
