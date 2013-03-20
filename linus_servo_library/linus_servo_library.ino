@@ -4,11 +4,13 @@
 
 // This code is different from what is in my book. It is intended for use with continuous rotation servo motors that still have the internal motor-controllers in place. This code does NOT use the Adafruit motor-shield, instead the motor control wires shoudl be connected to pins D9 and D10.
 
-#include <Servo.h> 
+#include <Servo.h>
 
 // Change this to suit your robot
+// change to true if using a potentiometer
 boolean using_potentiometer = false;
-boolean print_stuff = false;
+// change to true if you want to see printed readings
+boolean print_stuff = true;
 
 // Create variables for sensor readings
 int sensor1 = 0;
@@ -48,8 +50,7 @@ int threshold = 128;
 
 // this threshold defines when the sensor is reading the white poster board
 int upper_threshold = 230;
-
-// this value sets the maximum speed of linus (255 = max). 
+ 
 // using a speed potentiometer will over-ride this setting.
 int speed_value = 89;
 
@@ -160,17 +161,33 @@ void loop(){
 void serial_write_stuff(){
   ///// Print values for each sensor
   /////sensor 1 values
-  Serial.print('s1: ' + sensor1 + ' - adj1: ' + adj_1);
+  Serial.print("sensor1: ");
+  Serial.print(sensor1);
+  Serial.print(" adj: ");
+  Serial.print(adj_1);
   /////sensor 2 values
-  Serial.print(', s2: ' + sensor2 + ' - adj2: ' + adj_2);
+  Serial.print(" , sensor2: ");
+  Serial.print(sensor2);
+  Serial.print(" adj: ");
+  Serial.print(adj_2);
   /////sensor 3 values
-  Serial.print(', s3: ' + sensor3 + ' - adj3: ' + adj_3);
+  Serial.print(" , sensor3: ");
+  Serial.print(sensor3);
+  Serial.print(" adj: ");
+  Serial.print(adj_3);
   /////sensor 4 values
-  Serial.print(', s4: ' + sensor4 + ' - adj4: ' + adj_4);  
+  Serial.print(" , sensor4: ");
+  Serial.print(sensor4);
+  Serial.print(" adj: ");
+  Serial.print(adj_4);
   /////sensor 5 values
-  Serial.print(', s5: ' + sensor5 + ' - adj5: ' + adj_5);
+  Serial.print(" , sensor5: ");
+  Serial.print(sensor5);
+  Serial.print(" adj: ");
+  Serial.print(adj_5);
   // print speed value
-  Serial.println(", speed:  " + speed_value);
+  Serial.print(", speed:  ");
+  Serial.println(speed_value);
 }
 
 // functions for motors
