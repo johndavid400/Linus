@@ -2,10 +2,10 @@
 // Follows a Black line on a White surface (poster-board and electrical tape).
 // Code by JDW 2014 – feel free to modify.
 
-int left_motor_dir(8);
-int left_motor_pwm(9);
-int right_motor_pwm(10);
-int right_motor_dir(11);
+int left_motor_dir = 12;
+int left_motor_pwm = 3;
+int right_motor_pwm = 11;
+int right_motor_dir = 13;
 
 // Create variables for sensor readings
 int left = 0;
@@ -32,16 +32,16 @@ void setup(){
   pinMode(right_motor_pwm, OUTPUT);
   pinMode(right_motor_dir, OUTPUT);
   // set motors in position to go forward only
-  digitalWrite(left_motor_dir, HIGH);
-  digitalWrite(right_motor_dir, HIGH);
+  digitalWrite(left_motor_dir, LOW);
+  digitalWrite(right_motor_dir, LOW);
 }
 
 void update_sensors(){
-  left = analogRead(0);
-  left_center = analogRead(1);
+  left = analogRead(4);
+  left_center = analogRead(3);
   center = analogRead(2);
-  right_center = analogRead(3);
-  right = analogRead(4);
+  right_center = analogRead(1);
+  right = analogRead(0);
   
   if (use_speed_pot){
     // check value for speed potentiometer
