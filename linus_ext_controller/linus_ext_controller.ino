@@ -14,11 +14,20 @@ int center = 0;
 int right_center= 0;
 int right = 0;
 
-// value to define a threshold for whether reading white or black
-int threshold = 512;
+int speed_pin = 0;
+int left_pin = 5;
+int left_center_pin = 4;
+int center_pin = 3;
+int right_center_pin = 2;
+int right_pin = 1;
 
-int speed_value = 255;
+// value to define a threshold for whether reading white or black
+int threshold = 700;
+
+int speed_value = 64;
 int speed_pot;
+
+int debug_pin = 2;
 
 boolean debug = false;
 boolean use_speed_pot = false;
@@ -31,21 +40,41 @@ void setup(){
   // declare right motor
   pinMode(right_motor_pwm, OUTPUT);
   pinMode(right_motor_dir, OUTPUT);
-  // set motors in position to go forward only
-  digitalWrite(left_motor_dir, LOW);
-  digitalWrite(right_motor_dir, LOW);
+  // Ground pin 2 at startup to go into debug mode
+  pinMode(debug_pin, INPUT);
+  digitalWrite(debug_pin, HIGH);
+  
+  check_debug();
+  check_speed_control();
+}
+
+void check_debug(){
+  if (digitalRead(debug_pin) == LOW){
+    debug = true;
+  }
+}
+
+void check_speed_control(){
+  // connect potentiometer and turn all the way up at startup to use for speed control
+  int speed_control_val = 0;
+  for(int i = 0; i < 10; i++){
+    speed_control_val += analogRead(speed_pin);
+  }
+  if ((speed_control_val / 10) > 1000){
+    use_speed_pot = true;
+  }
 }
 
 void update_sensors(){
-  left = analogRead(4);
-  left_center = analogRead(3);
-  center = analogRead(2);
-  right_center = analogRead(1);
-  right = analogRead(0);
+  left = analogRead(left_pin);
+  left_center = analogRead(left_center_pin);
+  center = analogRead(center_pin);
+  right_center = analogRead(right_center_pin);
+  right = analogRead(right_pin);
   
   if (use_speed_pot){
     // check value for speed potentiometer
-    speed_value = analogRead(5) / 4;
+    speed_value = analogRead(speed_pin) / 4;
   }
 }
 
@@ -70,12 +99,20 @@ void loop(){
   }
   else {
     // first check the left sensors
-    if (left < threshold || left_center < threshold){
+    if (left < threshold && right > threshold){
       left_motor_stop();
       right_motor_forward();
     }
     // then check the right sensors
-    else if (right < threshold || right_center < threshold){
+    else if (left < threshold && right > threshold){
+      left_motor_forward();
+      right_motor_stop();
+    }
+    else if (left_center < threshold && right_center > threshold){
+      left_motor_stop();
+      right_motor_forward();
+    }
+    else if (left_center > threshold && right_center < threshold){
       left_motor_forward();
       right_motor_stop();
     }
@@ -98,6 +135,12 @@ void serial_print_stuff(){
 }
 
 void left_motor_forward(){
+  digitalWrite(left_motor_dir, LOW);
+  analogWrite(left_motor_pwm, speed_value);
+}
+
+void left_motor_reverse(){
+  digitalWrite(left_motor_dir, HIGH);
   analogWrite(left_motor_pwm, speed_value);
 }
 
@@ -106,6 +149,12 @@ void left_motor_stop(){
 }
 
 void right_motor_forward(){
+  digitalWrite(right_motor_dir, LOW);
+  analogWrite(right_motor_pwm, speed_value);
+}
+
+void right_motor_reverse(){
+  digitalWrite(right_motor_dir, HIGH);
   analogWrite(right_motor_pwm, speed_value);
 }
 
