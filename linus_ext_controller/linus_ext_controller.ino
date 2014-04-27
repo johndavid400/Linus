@@ -2,26 +2,46 @@
 // Follows a Black line on a White surface (poster-board and electrical tape).
 // Code by JDW 2014 – feel free to modify.
 
+// motor pins
 int left_motor_dir = 12;
 int left_motor_pwm = 3;
 int right_motor_pwm = 11;
 int right_motor_dir = 13;
 
-// Create variables for sensor readings
+// create variables for sensor readings
 int left = 0;
 int left_center = 0;
 int center = 0;
 int right_center= 0;
 int right = 0;
 
+// analog input pins for IR sensors
+int left_pin = 1;
+int left_center_pin = 2;
+int center_pin = 3;
+int right_center_pin = 4;
+int right_pin = 5;
+
 // value to define a threshold for whether reading white or black
-int threshold = 512;
+// this is an analog value from 0-1023, where 0 would be solid black and 1023 would be solid white.
+int threshold = 900;
 
-int speed_value = 255;
-int speed_pot;
+// set a default speed value of 64 out of 255. Basically 1/4 of full speed.
+int speed_value = 64;
 
-boolean debug = false;
+// analog pin to connect potentiometer used for speed control
+int speed_pin = 0;
+
+// set use speed potentiometer to false by default
 boolean use_speed_pot = false;
+
+// use pin 2 to allow user to put into debug mode by grounding this pin during startup.
+// debug mode prints IR sensor values to the serial monitor
+int debug_pin = 2;
+
+// set debug mode to false by default
+boolean debug = false;
+
 
 void setup(){
   Serial.begin(9600); // start serial monitor to see sensor readings
@@ -31,21 +51,45 @@ void setup(){
   // declare right motor
   pinMode(right_motor_pwm, OUTPUT);
   pinMode(right_motor_dir, OUTPUT);
-  // set motors in position to go forward only
-  digitalWrite(left_motor_dir, LOW);
-  digitalWrite(right_motor_dir, LOW);
+  // Ground pin 2 at startup to go into debug mode
+  pinMode(debug_pin, INPUT);
+  digitalWrite(debug_pin, HIGH);
+  
+  check_debug();
+  check_speed_control();
+}
+
+void check_debug(){
+  if (digitalRead(debug_pin) == LOW){
+    // if debug_pin is grounded during startup, print IR values to serial monitor
+    debug = true;
+  }
+}
+
+void check_speed_control(){
+  // connect potentiometer and turn all the way up at startup to use for speed control
+  int speed_control_val = 0;
+  for(int i = 0; i < 10; i++){
+    // read potentiometer 10 times and get the average value
+    speed_control_val += analogRead(speed_pin);
+  }
+  if ((speed_control_val / 10) > 1000){
+    // if the average value of 10 readings is over 1000 (out of 1023), then use the potentiometer to set speed value
+    use_speed_pot = true;
+  }
 }
 
 void update_sensors(){
-  left = analogRead(4);
-  left_center = analogRead(3);
-  center = analogRead(2);
-  right_center = analogRead(1);
-  right = analogRead(0);
+  // read values for each IR sensor
+  left = analogRead(left_pin);
+  left_center = analogRead(left_center_pin);
+  center = analogRead(center_pin);
+  right_center = analogRead(right_center_pin);
+  right = analogRead(right_pin);
   
   if (use_speed_pot){
     // check value for speed potentiometer
-    speed_value = analogRead(5) / 4;
+    speed_value = analogRead(speed_pin) / 4;
   }
 }
 
@@ -55,13 +99,12 @@ void loop(){
 
   // first, check the value of the center sensor
   if (center < threshold){
-    // if center sensor value is below threshold, check surrounding sensors
+    // if center sensor value is below threshold (on the black line), check surrounding sensors
     if (left_center > threshold && right_center > threshold){
-      // if center is the only one reading black tape, drive forward
-      left_motor_forward();
-      right_motor_forward();
+      // if center is the only one reading the black line, drive forward
+      left_motor_forward(speed_value);
+      right_motor_forward(speed_value);
     }
-    // you want the bot to stop when it reaches the black box.
     else if (left < threshold && left_center < threshold && center < threshold && right_center < threshold && right < threshold){
       //  if all sensors are reading black, stop Linus.
       left_motor_stop();
@@ -69,23 +112,25 @@ void loop(){
     }
   }
   else {
-    // first check the left sensors
     if (left < threshold || left_center < threshold){
+      // if either left sensor is reading the black line, stop the left motor and drive the right motor
       left_motor_stop();
-      right_motor_forward();
+      right_motor_forward(speed_value);
     }
-    // then check the right sensors
     else if (right < threshold || right_center < threshold){
-      left_motor_forward();
+      // if either right sensor is reading the black line, stop the right motor and drive the left motor
+      left_motor_forward(speed_value);
       right_motor_stop();
     }
   }
   if (debug){
+    // if you grounded the debug_pin (D2) during startup, print serial values
     serial_print_stuff();
   }
 }
 
 void serial_print_stuff(){
+  // print each IR sensor value from left to right
   Serial.print(left);
   Serial.print("   ");
   Serial.print(left_center);
@@ -97,16 +142,28 @@ void serial_print_stuff(){
   Serial.println(right);
 }
 
-void left_motor_forward(){
-  analogWrite(left_motor_pwm, speed_value);
+void left_motor_forward(int spd){
+  digitalWrite(left_motor_dir, LOW);
+  analogWrite(left_motor_pwm, spd);
+}
+
+void left_motor_reverse(int spd){
+  digitalWrite(left_motor_dir, HIGH);
+  analogWrite(left_motor_pwm, spd);
 }
 
 void left_motor_stop(){
   digitalWrite(left_motor_pwm, LOW);
 }
 
-void right_motor_forward(){
-  analogWrite(right_motor_pwm, speed_value);
+void right_motor_forward(int spd){
+  digitalWrite(right_motor_dir, LOW);
+  analogWrite(right_motor_pwm, spd);
+}
+
+void right_motor_reverse(int spd){
+  digitalWrite(right_motor_dir, HIGH);
+  analogWrite(right_motor_pwm, spd);
 }
 
 void right_motor_stop(){
