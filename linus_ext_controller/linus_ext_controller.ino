@@ -2,7 +2,7 @@
 // Follows a Black line on a White surface (poster-board and electrical tape).
 // Code by JDW 2014 – feel free to modify.
 
-// motor pins
+// motor pins when using the Arduino Motor Shield R3
 int left_motor_dir = 12;
 int left_motor_pwm = 3;
 int right_motor_pwm = 11;
@@ -24,7 +24,7 @@ int right_pin = 5;
 
 // value to define a threshold for whether reading white or black
 // this is an analog value from 0-1023, where 0 would be solid black and 1023 would be solid white.
-int threshold = 900;
+int threshold = 512;
 
 // set a default speed value of 64 out of 255. Basically 1/4 of full speed.
 int speed_value = 64;
@@ -33,6 +33,7 @@ int speed_value = 64;
 int speed_pin = 0;
 
 // set use speed potentiometer to false by default
+// set to true if you want to use a potentiometer connected to pin A0 to set the speed
 boolean use_speed_pot = false;
 
 // use pin 2 to allow user to put into debug mode by grounding this pin during startup.
@@ -56,26 +57,12 @@ void setup(){
   digitalWrite(debug_pin, HIGH);
   
   check_debug();
-  check_speed_control();
 }
 
 void check_debug(){
   if (digitalRead(debug_pin) == LOW){
     // if debug_pin is grounded during startup, print IR values to serial monitor
     debug = true;
-  }
-}
-
-void check_speed_control(){
-  // connect potentiometer and turn all the way up at startup to use for speed control
-  int speed_control_val = 0;
-  for(int i = 0; i < 10; i++){
-    // read potentiometer 10 times and get the average value
-    speed_control_val += analogRead(speed_pin);
-  }
-  if ((speed_control_val / 10) > 1000){
-    // if the average value of 10 readings is over 1000 (out of 1023), then use the potentiometer to set speed value
-    use_speed_pot = true;
   }
 }
 
