@@ -13,6 +13,7 @@ int right = 0;
 // value to define a threshold for whether reading white or black
 int threshold = 512;
 
+int debug_pin = 2;
 boolean debug = false;
 
 void setup(){
@@ -20,6 +21,14 @@ void setup(){
   // declare motor output pins
   pinMode(left_motor, OUTPUT);
   pinMode(right_motor, OUTPUT);
+  // declare debug_pin as an INPUT
+  pinMode(debug_pin, INPUT);
+  // write enable pull-up resistor by writing D2 input pin HIGH
+  digitalWrite(debug_pin, HIGH);
+  // check D2 and if grounded, enable debugging mode
+  if (digitalRead(debug_pin) == LOW) {
+    debug = true;
+  }
 }
 
 void update_sensors(){
