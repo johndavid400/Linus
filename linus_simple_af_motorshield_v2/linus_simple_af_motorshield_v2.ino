@@ -2,8 +2,20 @@
 // Follows a Black line on a White surface (poster-board and electrical tape).
 // Code by JDW 2014 – feel free to modify.
 
-int left_motor = 9;
-int right_motor = 10;
+#include <Wire.h>
+#include <Adafruit_MotorShield.h>
+#include "utility/Adafruit_PWMServoDriver.h"
+
+// Create the motor shield object with the default I2C address
+Adafruit_MotorShield AFMS = Adafruit_MotorShield();
+// Or, create it with a different I2C address (say for stacking)
+// Adafruit_MotorShield AFMS = Adafruit_MotorShield(0x61);
+
+// Select which 'port' M1, M2, M3 or M4. In this case, M1
+Adafruit_DCMotor *leftMotor = AFMS.getMotor(1);
+Adafruit_DCMotor *rightMotor = AFMS.getMotor(2);
+// You can also make another motor on port M2
+//Adafruit_DCMotor *myOtherMotor = AFMS.getMotor(2);
 
 // Create variables for sensor readings
 int left = 0;
@@ -18,9 +30,19 @@ boolean debug = false;
 
 void setup(){
   Serial.begin(9600); // start serial monitor to see sensor readings
-  // declare motor output pins
-  pinMode(left_motor, OUTPUT);
-  pinMode(right_motor, OUTPUT);
+
+  AFMS.begin();  // create with the default frequency 1.6KHz
+  //AFMS.begin(1000);  // OR with a different frequency, say 1KHz
+
+  // Set the speed to start, from 0 (off) to 255 (max speed)
+  leftMotor->setSpeed(255);
+  rightMotor->setSpeed(255);
+  leftMotor->run(FORWARD);
+  rightMotor->run(FORWARD);
+  // turn on motor
+  leftMotor->run(RELEASE);
+  rightMotor->run(RELEASE);
+
   // declare debug_pin as an INPUT
   pinMode(debug_pin, INPUT);
   // write enable pull-up resistor by writing D2 input pin HIGH
@@ -40,6 +62,7 @@ void update_sensors(){
 }
 
 void loop(){
+  uint8_t i;
 
   // first, read the sensors
   update_sensors();
@@ -90,19 +113,19 @@ void serial_print_stuff(){
 }
 
 void left_motor_forward(){
-  digitalWrite(left_motor, HIGH);
+  leftMotor->run(FORWARD);
 }
 
 void left_motor_stop(){
-  digitalWrite(left_motor, LOW);
+  leftMotor->run(RELEASE);
 }
 
 void right_motor_forward(){
-  digitalWrite(right_motor, HIGH);
+  rightMotor->run(FORWARD);
 }
 
 void right_motor_stop(){
-  digitalWrite(right_motor, LOW);
+  rightMotor->run(RELEASE);
 }
 
 
